@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<style>
+    .outer {
+        height: 19px;
+        border: 1px solid;
+        border-radius: 5px;
+        margin-right: 50px;
+    }
+
+    .inner {
+        height: 18px;
+        width: 0%;
+        background-color: green;
+        overflow-x: visible;
+    }
+</style>
+
+<body>
+    <input id='file-selector' type="file" multiple='true' />
+    <button id='upload'>Upload</button>
+    <div id="container">
+        <div class="outer">
+            <div class="inner"></div>
+        </div>
+    </div>
+    <script src="https://cdn.bootcss.com/require.js/2.3.5/require.min.js"></script>
+    <script>
+        require(['uploader'], function (uploader) {
+            var config = new uploader.UploaderConfig('http://'+ location.hostname +':8082/Upload/UploadFile');
+            config.OnProgress = function(fn, prct) {
+                var d = document.querySelector('div[fname="' + fn + '"]');
+                d.style.width = prct + '%';
+            }
+            config.OnStatusChanged = function(fn, status, data) {
+                console.log(fn + ' status changed to ' + status + ' data:' + data);
+            }
+            config.OnUploading = function(form, xhr){
+                form.append('fileType', 'supportingfile');
+            }
+
+            var l = new uploader.FileUploader(config);
+
+            document.getElementById('upload').onclick = function () {
+                var selector = document.getElementById('file-selector');
+                for (var i = 0; i < selector.files.length; ++i) {
+                    var file = selector.files[i];
+                    var container = document.getElementById('container');
+                    var outer = document.createElement('div');
+                    outer.className = 'outer';
+                    var inner = document.createElement('div');
+                    inner.className = 'inner';
+                    inner.innerText = file.name;
+                    inner.setAttribute('fname', file.name);
+                    outer.appendChild(inner);
+                    container.appendChild(outer);
+
+                    l.send(selector.files[i]);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
